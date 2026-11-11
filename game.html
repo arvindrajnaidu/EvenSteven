@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Ledger Tilt: marbles, lanes and a key card</title>
+<title>Even Steven</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@600;700;800&display=swap">
 <style>
 :root{
@@ -33,6 +33,7 @@ button:disabled{opacity:.5;cursor:default}
 
 #app{height:100%;display:flex;flex-direction:column;background:#263632}
 header{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--panel);flex-wrap:wrap}
+@media (max-width:520px){header{gap:5px 7px;padding:5px 8px}}
 header h1{font-family:'Fredoka',system-ui,sans-serif;font-weight:600;font-size:22px;margin:0;display:flex;align-items:center;gap:10px}
 .logo{display:inline-flex;gap:3px}
 .logo i{width:13px;height:13px;border-radius:50%;display:block;box-shadow:inset -2px -2px 3px rgba(0,0,0,.25)}
@@ -49,6 +50,13 @@ main{flex:1;min-height:0;position:relative}
 #gl{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
 #lanehint{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);background:rgba(255,255,255,.9);color:#1d2a2a;border-radius:999px;padding:4px 12px;font-weight:800;font-size:13px;pointer-events:none;opacity:0;transition:opacity .25s}
 #lanehint.on{opacity:1}
+#viewResults{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);min-height:44px;white-space:nowrap}
+#resultsDialog{width:min(520px,calc(100% - 24px));max-height:min(720px,calc(100% - 32px));overflow:auto;padding:0;color:var(--text);background:var(--panel-2);border:1px solid var(--border);border-radius:16px}
+#resultsDialog::backdrop{background:rgba(10,16,14,.62)}
+#resultsDialog[open], #viewResults:not([hidden]){animation:reveal .32s ease-out}
+@keyframes reveal{from{opacity:0;translate:0 14px}to{opacity:1;translate:0 0}}
+#resultsDialog form{position:sticky;top:0;display:flex;justify-content:flex-end;padding:8px 12px;background:var(--panel-2)}
+#resultsDialog .box{border:0;padding-top:0}
 #webglfail{display:none;position:absolute;inset:0;align-items:center;justify-content:center;padding:20px;color:#fff;text-align:center;font-weight:700}
 
 #intro{position:fixed;inset:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(10,16,14,.5);backdrop-filter:blur(3px);z-index:5}
@@ -64,29 +72,28 @@ main{flex:1;min-height:0;position:relative}
 .btn:active{transform:translateY(1px)}
 .btn.wide{width:100%;padding:12px 16px;font-size:16px}
 
-#panel{position:absolute;z-index:2;top:8px;left:50%;transform:translateX(-50%);width:min(560px,calc(100% - 16px));max-height:48%;display:flex;flex-direction:column;gap:6px;overflow:auto}
+#panel{position:absolute;z-index:2;top:8px;left:50%;transform:translateX(-50%);width:min(560px,calc(100% - 16px));max-height:65%;display:flex;flex-direction:column;gap:6px;overflow:auto}
 #panel>*{flex-shrink:0}
-.turn-row{display:flex;align-items:center;gap:12px}
-.turn-row .txt{flex:1}
 .box{border:1px solid var(--border);border-radius:14px;padding:12px 14px;background:var(--panel-2)}
 .box h3{margin:0 0 6px;font-family:'Fredoka',system-ui,sans-serif;font-weight:600;font-size:17px}
-.card{background:var(--panel);border:1px solid var(--border);border-left:6px solid var(--accent-2);border-radius:14px;padding:12px 14px}
-.card .meta{display:flex;justify-content:space-between;color:var(--muted);font-weight:800;font-size:12px;margin-bottom:6px}
+.card{background:linear-gradient(155deg,#263e37,#162823);color:#f6f8f5;border:1px solid #739587;border-radius:16px;padding:10px 13px;box-shadow:0 10px 30px #08150f59}
+.card .meta,#pips{color:#c4d6cf}
+.card .meta{font-variant-numeric:tabular-nums}
+.card #moveStatus{color:#ffd690}
+.card .meta{display:flex;justify-content:space-between;font-weight:800;font-size:12px;margin-bottom:6px}
 .card .txt{font-size:clamp(15px,2.2vw,17px);font-weight:700;line-height:1.35}
 .card .amt{margin-top:8px;color:var(--muted);font-weight:700;font-size:13px}
-#supply{display:flex;flex:none;flex-direction:column;align-items:center;gap:3px;background:var(--panel-2);padding:5px 8px;border:2px dashed var(--border);border-radius:12px;touch-action:none;cursor:grab;font-weight:800}
-#supply[hidden]{display:none}
-#supply.over{border-color:var(--accent);background:var(--good-bg)}
-.supply-marble,#dragMarble{width:34px;height:34px;flex:none;border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff,#1c9a8b 40%,#07554b);box-shadow:0 3px 5px #0004}
+#pips{display:flex;align-items:center;gap:8px;width:fit-content;margin-top:8px;padding:4px 6px;border:1px solid transparent;border-radius:10px;font-weight:700;font-size:13px;touch-action:none}
+#pips.over{border-color:#9ee9c9;background:#2b5646}
+.pip-ball,#dragMarble{width:30px;height:30px;flex:none;border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff,var(--marble-color,#a1a8ad) 42%,#252a31);box-shadow:0 3px 5px #0004}
+.pip-ball{cursor:grab}
+.pip-ball.dragging{visibility:hidden}
 #dragMarble{position:fixed;z-index:20;pointer-events:none;transform:translate(-50%,-50%)}
-#supply span:last-child{font-size:11px}
-.pips{display:flex;align-items:center;gap:5px;margin-top:10px;font-weight:700;color:var(--muted);font-size:13px}
-.pips .p{width:13px;height:13px;border-radius:50%;border:2px solid var(--border);background:transparent}
-.pips .p.add{background:var(--accent);border-color:var(--accent)}
-.pips .p.take{background:var(--accent-2);border-color:var(--accent-2)}
-.hintrow{display:flex;gap:8px;align-items:center;margin-top:8px}
-.hintrow button{border:1px solid var(--border);background:var(--panel);border-radius:10px;padding:5px 10px;font-weight:800;font-size:13px}
-#hintTxt{color:var(--warn);font-weight:700;font-size:13px;min-height:1.2em}
+.pip-used{width:30px;height:30px;flex:none;border-radius:50%;background:#101e1a;border:2px solid #739587}
+.pip-used.add{border-color:var(--accent)}
+.pip-used.take{border-color:var(--accent-2)}
+#moveStatus{color:var(--warn);font-weight:700;font-size:13px;margin-top:8px}
+#moveStatus:empty{display:none}
 .fb{border-radius:14px;padding:12px 14px;background:var(--panel);border:1px solid var(--border)}
 .tag{display:inline-block;border-radius:999px;padding:2px 10px;font-weight:800;font-size:13px}
 .tag.ok{background:var(--good-bg);color:var(--good)} .tag.no{background:var(--bad-bg);color:var(--bad)}
@@ -108,13 +115,13 @@ main{flex:1;min-height:0;position:relative}
 .score{font-family:'Fredoka',system-ui,sans-serif;font-size:22px;font-weight:600;margin:8px 0}
 .row{display:flex;gap:8px;margin-top:10px}
 .row .btn{flex:1}
-@media (prefers-reduced-motion: reduce){ *{transition:none !important} }
+@media (prefers-reduced-motion: reduce){ *{transition:none !important;animation:none !important} }
 </style>
 </head>
 <body>
 <div id="app">
   <header>
-    <h1><span class="logo"><i></i><i></i><i></i></span>Ledger Tilt</h1>
+    <h1><span class="logo"><i></i><i></i><i></i></span>Even Steven</h1>
     <span class="spacer"></span>
     <span class="stat" id="gameStat">Game 1 of 5</span>
     <span class="stat" id="scoreStat">Score 0</span>
@@ -133,11 +140,11 @@ main{flex:1;min-height:0;position:relative}
       <div id="webglfail">This browser can’t show the 3D tray. Try a current Chrome, Edge, Firefox or Safari.</div>
       <div id="intro">
         <div class="sheet">
-          <h2>Ledger Tilt</h2>
+          <h2>Even Steven</h2>
           <p>Seven lanes, one marble per $10. Each lane is an account. Run your little business for three cards, then tilt the tray and let the marbles roll to the key card.</p>
           <ol>
             <li>Read the card. Decide which two accounts change.</li>
-            <li>Drag a marble from the supply into a lane. Pick up a marble to move it to another lane, or return it to the supply. A transfer counts as two moves.</li>
+            <li>Drag a gray marble into a lane. Pick up a marble to move it to another lane, or return it to the row of marbles. A transfer counts as two moves.</li>
             <li>After three cards, tilt. The marbles line up against the wall, and the key card shows the number each lane should reach.</li>
           </ol>
           <p>Lanes 1 to 4 are what you have and what you spent. Lanes 5 to 7 are where the money came from. The two sides always add up to the same total when the books are right.</p>
@@ -151,12 +158,9 @@ main{flex:1;min-height:0;position:relative}
       <aside id="panel">
         <div class="card" id="cardBox">
           <div class="meta"><span id="cardMeta">Card 1 of 3</span><span id="amtTxt"></span></div>
-          <div class="turn-row">
-            <div class="txt" id="cardText">…</div>
-            <div id="supply" aria-label="Drag a marble from here or return one here"><span class="supply-marble"></span><span>Supply</span></div>
-          </div>
-          <div class="pips" id="pips"></div>
-          <div class="hintrow"><button id="hintBtn">Hint</button><span id="hintTxt"></span></div>
+          <div class="txt" id="cardText">…</div>
+          <div id="pips" aria-label="Drag a gray marble to a lane or return a marble here"></div>
+          <div id="moveStatus" role="status"></div>
         </div>
 
         <div class="fb" id="fbBox" hidden>
@@ -164,10 +168,14 @@ main{flex:1;min-height:0;position:relative}
           <button class="btn wide" id="nextBtn">Next card</button>
         </div>
 
-        <div class="box" id="results" hidden></div>
       </aside>
+      <button class="btn" id="viewResults" aria-haspopup="dialog" hidden>View results</button>
     </div>
   </main>
+  <dialog id="resultsDialog" aria-labelledby="resultsTitle">
+    <form method="dialog"><button class="pill" autofocus>Close</button></form>
+    <div class="box" id="results"></div>
+  </dialog>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -181,10 +189,10 @@ var LANES=7, CAP=8, UNIT=10;
 var ACCTS=[
   { name:'Cash',       group:'have', side:'D' },
   { name:'Stuff',      group:'have', side:'D' },
-  { name:'Owed to Me', group:'have', side:'D' },
+  { name:'Owed to Me', labelLines:['Owed','to Me'], group:'have', side:'D' },
   { name:'Costs',      group:'earn', side:'D' },
   { name:'Loans',      group:'owe',  side:'C' },
-  { name:'Owner’s $',  group:'owe',  side:'C' },
+  { name:'Owner’s $',  labelLines:['Owner’s','$'], group:'owe',  side:'C' },
   { name:'Sales',      group:'earn', side:'C' }
 ];
 var GCOL={ have:0x1c9a8b, owe:0x7b5fd6, earn:0xe08a1e };
@@ -193,29 +201,29 @@ var GCSS={ have:'#1c9a8b', owe:'#7b5fd6', earn:'#e08a1e' };
 // Each game: 3 cards, each a list of lane moves. Lane index 0..6, d = marbles added (+) or taken (-).
 var GAMES=[
   { title:'Opening day', cards:[
-    { t:'You start your business by putting in $20 of your own savings.', m:[{l:0,d:2},{l:5,d:2}], tip:'Cash goes up. Whose money is it? Yours, so Owner’s $ goes up too.' },
-    { t:'You sell a hoodie design for $10 cash.', m:[{l:0,d:1},{l:6,d:1}], tip:'Cash goes up. You earned it, so Sales goes up.' },
-    { t:'You buy a gaming mic for $10 cash.', m:[{l:1,d:1},{l:0,d:-1}], tip:'You swap cash for something you keep. Stuff up, Cash down.' }
+    { t:'You start your business by putting in $20 of your own savings.', m:[{l:0,d:2},{l:5,d:2}] },
+    { t:'You sell a hoodie design for $10 cash.', m:[{l:0,d:1},{l:6,d:1}] },
+    { t:'You buy a gaming mic for $10 cash.', m:[{l:1,d:1},{l:0,d:-1}] }
   ]},
   { title:'Borrowing and promises', cards:[
-    { t:'You borrow $20 from your cousin.', m:[{l:0,d:2},{l:4,d:2}], tip:'Cash goes up, and now you owe it back. Loans goes up.' },
-    { t:'You finish a $10 logo for a friend. They’ll pay you next week.', m:[{l:2,d:1},{l:6,d:1}], tip:'You earned it but have no cash yet. Owed to Me up, Sales up.' },
-    { t:'You pay $10 for ads on social media.', m:[{l:3,d:1},{l:0,d:-1}], tip:'Money out, nothing you can keep. Costs up, Cash down.' }
+    { t:'You borrow $20 from your cousin.', m:[{l:0,d:2},{l:4,d:2}] },
+    { t:'You finish a $10 logo for a friend. They’ll pay you next week.', m:[{l:2,d:1},{l:6,d:1}] },
+    { t:'You pay $10 for ads on social media.', m:[{l:3,d:1},{l:0,d:-1}] }
   ]},
   { title:'Settling up', cards:[
-    { t:'Your friend pays the $10 they owed you.', m:[{l:0,d:1},{l:2,d:-1}], tip:'Cash up, and they owe you less. Owed to Me down.' },
-    { t:'You pay back $10 of your cousin’s loan.', m:[{l:4,d:-1},{l:0,d:-1}], tip:'You owe less and you have less cash. Both go down.' },
-    { t:'Your uncle buys you $10 of art supplies. You’ll pay him back later.', m:[{l:1,d:1},{l:4,d:1}], tip:'You got stuff, and you owe for it. Stuff up, Loans up.' }
+    { t:'Your friend pays the $10 they owed you.', m:[{l:0,d:1},{l:2,d:-1}] },
+    { t:'You pay back $10 of your cousin’s loan.', m:[{l:4,d:-1},{l:0,d:-1}] },
+    { t:'Your uncle buys you $10 of art supplies. You’ll pay him back later.', m:[{l:1,d:1},{l:4,d:1}] }
   ]},
   { title:'A good week', cards:[
-    { t:'You sell a $20 custom order for cash.', m:[{l:0,d:2},{l:6,d:2}], tip:'Same as a cash sale, two marbles each.' },
-    { t:'You take $10 out of the business for pizza.', m:[{l:5,d:-1},{l:0,d:-1}], tip:'Your stake shrinks and cash leaves. Owner’s $ down, Cash down.' },
-    { t:'You pay $10 for web hosting.', m:[{l:3,d:1},{l:0,d:-1}], tip:'Money out, nothing kept. Costs up, Cash down.' }
+    { t:'You sell a $20 custom order for cash.', m:[{l:0,d:2},{l:6,d:2}] },
+    { t:'You take $10 out of the business for pizza.', m:[{l:5,d:-1},{l:0,d:-1}] },
+    { t:'You pay $10 for web hosting.', m:[{l:3,d:1},{l:0,d:-1}] }
   ]},
   { title:'Three-lane cards', cards:[
-    { t:'You sell a $20 sticker pack. A classmate pays $10 now and $10 next week.', m:[{l:0,d:1},{l:2,d:1},{l:6,d:2}], tip:'Sales up by two. Half arrives as cash, half as a promise.' },
-    { t:'You buy $20 of supplies: $10 cash, the rest on credit.', m:[{l:1,d:2},{l:0,d:-1},{l:4,d:1}], tip:'Stuff up by two. Cash pays for one, a loan covers the other.' },
-    { t:'You return the gaming mic for a $10 refund.', m:[{l:0,d:1},{l:1,d:-1}], tip:'The swap in reverse. Cash up, Stuff down.' }
+    { t:'You sell a $20 sticker pack. A classmate pays $10 now and $10 next week.', m:[{l:0,d:1},{l:2,d:1},{l:6,d:2}] },
+    { t:'You buy $20 of supplies: $10 cash, the rest on credit.', m:[{l:1,d:2},{l:0,d:-1},{l:4,d:1}] },
+    { t:'You return the gaming mic for a $10 refund.', m:[{l:0,d:1},{l:1,d:-1}] }
   ]}
 ];
 function applyMoves(bal,moves){ moves.forEach(function(x){ bal[x.l]+=x.d; }); return bal; }
@@ -246,8 +254,9 @@ sun.shadow.mapSize.set(2048,2048); sun.shadow.camera.left=-9; sun.shadow.camera.
 scene.add(sun);
 var fill=new THREE.PointLight(0x9fd8ff,0.35,40); fill.position.set(10,6,14); scene.add(fill);
 
+var GRAVITY=38;
 var world=new CANNON.World();
-world.gravity.set(0,-30,0);
+world.gravity.set(0,-GRAVITY,0);
 world.allowSleep=true;
 world.solver.iterations=14;
 world.defaultContactMaterial.friction=0.3;
@@ -255,6 +264,10 @@ world.defaultContactMaterial.restitution=0.25;
 
 /* Tray geometry, in tray-local coordinates. x across lanes (0..7), z along a lane (0 = key-card wall, LEN = gate end). */
 var LANE_W=1.0, LEN=12, R=0.42, WALL_H=1.0;
+// Keep falling and bouncing marbles inside the visible lane boundaries.
+var BARRIER_HEIGHT=5;
+var STOP_Z=LEN-1.75, STOP_DEPTH=0.18, STOP_HEIGHT=0.8;
+var stopCenterZ=STOP_Z+STOP_DEPTH/2;
 var trayGroup=new THREE.Group(); scene.add(trayGroup);
 var tilt=0, tiltT=0; // radians, positive = gate end down (marbles rest at the gate)
 var TILT_PLAY=THREE.MathUtils.degToRad(7), TILT_AUDIT=-THREE.MathUtils.degToRad(13);
@@ -264,9 +277,10 @@ function addStatic(hx,hy,hz,x,y,z){
   world.addBody(b); return b;
 }
 addStatic(LANES*LANE_W/2+1,0.3,LEN/2+1,LANES*LANE_W/2,-0.3,LEN/2);        // floor
-for(var w=0;w<=LANES;w++) addStatic(0.05,WALL_H,LEN/2+0.3,w*LANE_W,WALL_H/2,LEN/2); // lane walls
+for(var w=0;w<=LANES;w++) addStatic(0.05,BARRIER_HEIGHT/2,LEN/2+0.3,w*LANE_W,BARRIER_HEIGHT/2,LEN/2); // lane walls
 addStatic(LANES*LANE_W/2+1,WALL_H*2,0.25,LANES*LANE_W/2,WALL_H,-0.25);     // key-card wall
 addStatic(LANES*LANE_W/2+1,WALL_H,0.25,LANES*LANE_W/2,WALL_H/2,LEN+0.25);  // gate wall
+addStatic(LANES*LANE_W/2,BARRIER_HEIGHT/2,STOP_DEPTH/2,LANES*LANE_W/2,BARRIER_HEIGHT/2,stopCenterZ);
 
 /* ---------- Tray visuals ---------- */
 var wood=new THREE.MeshStandardMaterial({color:0x8a5a33,roughness:0.65,metalness:0.02});
@@ -287,9 +301,12 @@ function floorTexture(){
       x.fillStyle='#879b9b';
       x.fillRect(i*LANE_W*pxU+8,z+R*pxZ-tickHeight/2,LANE_W*pxU-16,tickHeight);
     }
-    x.fillStyle='#243b3b'; x.font='800 '+Math.round(pxU*0.22)+'px Nunito, sans-serif';
-    x.save(); x.translate((i+0.5)*LANE_W*pxU,c.height-pxZ*0.9); x.fillText(ACCTS[i].name,0,0); x.restore();
-    x.font='600 '+Math.round(pxU*0.5)+'px Fredoka, sans-serif'; x.fillText(String(i+1),(i+0.5)*LANE_W*pxU,c.height-pxZ*1.6);
+    x.fillStyle='#243b3b'; x.font='800 '+Math.round(pxU*0.25)+'px Nunito, sans-serif';
+    var labelLines=ACCTS[i].labelLines||[ACCTS[i].name];
+    labelLines.forEach(function(line,index){
+      var lineOffset=(index-(labelLines.length-1)/2)*0.26;
+      x.fillText(line,(i+0.5)*LANE_W*pxU,c.height-(0.9-lineOffset)*pxZ,LANE_W*pxU*0.78);
+    });
   }
   var t=new THREE.CanvasTexture(c); t.anisotropy=renderer.capabilities.getMaxAnisotropy(); return t;
 }
@@ -303,11 +320,14 @@ for(var w2=0;w2<=LANES;w2++){
   lw.castShadow=false; lw.receiveShadow=true; trayGroup.add(lw);
 }
 var gateWall=new THREE.Mesh(new THREE.BoxGeometry(LANES*LANE_W+1,WALL_H,0.5),wood); gateWall.position.set(LANES*LANE_W/2,WALL_H/2,LEN+0.25); gateWall.castShadow=true; trayGroup.add(gateWall);
+var marbleStop=new THREE.Mesh(new THREE.BoxGeometry(LANES*LANE_W,STOP_HEIGHT,STOP_DEPTH),wood);
+marbleStop.position.set(LANES*LANE_W/2,STOP_HEIGHT/2,stopCenterZ);
+trayGroup.add(marbleStop);
 var keyWallBack=new THREE.Mesh(new THREE.BoxGeometry(LANES*LANE_W+1,WALL_H*2.2,0.5),wood); keyWallBack.position.set(LANES*LANE_W/2,WALL_H*1.1,-0.25); keyWallBack.castShadow=true; trayGroup.add(keyWallBack);
 // hinge blocks under the key-card wall
 [0.3,LANES*LANE_W-0.3].forEach(function(x){ var h=new THREE.Mesh(new THREE.CylinderGeometry(0.35,0.35,0.6,24),woodDark); h.rotation.z=Math.PI/2; h.position.set(x,-0.6,0); scene.add(h); });
 // table
-var table=new THREE.Mesh(new THREE.PlaneGeometry(60,60),new THREE.MeshStandardMaterial({color:0x2a3a36,roughness:1}));
+var table=new THREE.Mesh(new THREE.PlaneGeometry(160,160),new THREE.MeshStandardMaterial({color:0x2a3a36,roughness:1}));
 table.rotation.x=-Math.PI/2; table.position.set(LANES*LANE_W/2,-3.5,LEN/2); table.receiveShadow=true; scene.add(table);
 
 /* Key card: a canvas texture on the inside face of the far wall. Face-down during play. */
@@ -391,7 +411,7 @@ function setBalances(bal){ // place marbles instantly for an opening position
     for(var k=0;k<n;k++){
       spawnMarble(lane);
       var m=marbles[marbles.length-1];
-      m.body.position.set(lane*LANE_W+LANE_W/2,R,LEN-R-k*2*R); m.body.velocity.set(0,0,0);
+      m.body.position.set(lane*LANE_W+LANE_W/2,R,STOP_Z-R-k*2*R); m.body.velocity.set(0,0,0);
     }
   });
 }
@@ -416,35 +436,42 @@ $('soundBtn').addEventListener('click',function(){ soundOn=!soundOn; this.setAtt
 /* ---------- Camera ---------- */
 // Fit the gate end during play and the full tray during the audit.
 var W=1,H=1;
-var viewDirection=new THREE.Vector3(0,1,0.75).normalize();
-var viewUp=new THREE.Vector3(0,viewDirection.z,-viewDirection.y);
+var viewDirection=new THREE.Vector3(), viewRight=new THREE.Vector3(), viewUp=new THREE.Vector3();
+var reduceMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+var arrivalStarted=0, ARRIVAL_MS=1350;
 var cameraTarget=new THREE.Vector3(), cameraOffset=new THREE.Vector3();
-var playStart=LEN-CAP*2*R-0.6;
+var playStart=STOP_Z-CAP*2*R-0.6;
 var framingCorners=[];
-[-0.65,LANES*LANE_W+0.65].forEach(function(x){
-  [-0.65,3.7].forEach(function(y){
+[-0.53,LANES*LANE_W+0.53].forEach(function(x){
+  [-0.65,2.2].forEach(function(y){
     [-0.65,LEN+0.65].forEach(function(z){ framingCorners.push(new THREE.Vector3(x,y,z)); });
   });
 });
 function resize(){
   var r=stage.getBoundingClientRect(); W=Math.max(1,r.width); H=Math.max(1,r.height);
   renderer.setSize(W,H,false);
-  var panel=$('panel');
-  var inset=panel.offsetHeight ? panel.offsetTop+panel.offsetHeight+8 : 0;
-  // The turn card can cover the far end while the gate and lanes stay in view.
-  if(!$('cardBox').hidden) inset-=Math.min(64,inset/3);
-  camera.setViewOffset(W,Math.max(1,H-inset),0,-inset,W,H);
+  var auditing=phase==='audit'||phase==='done';
+  var portraitOffset=auditing ? 0 : Math.max(0,H-W*1.32)*0.24;
+  var bottomInset=auditing ? 64 : 0;
+  camera.setViewOffset(W,Math.max(1,H-portraitOffset-bottomInset),0,-portraitOffset,W,H);
 }
-if(window.ResizeObserver){
-  var stageObserver=new ResizeObserver(resize);
-  stageObserver.observe(stage);
-  stageObserver.observe($('panel'));
-} else window.addEventListener('resize',resize);
+if(window.ResizeObserver) new ResizeObserver(resize).observe(stage); else window.addEventListener('resize',resize);
 resize();
-function updateCamera(){
+function updateCamera(now){
   trayGroup.updateMatrixWorld(true);
-  var lowerEnd=phase==='play'||phase==='locked'||phase==='feedback' ? playStart : -0.65;
-  cameraTarget.set(LANES*LANE_W/2,0.7,(lowerEnd+LEN+0.65)/2).applyMatrix4(trayGroup.matrixWorld);
+  var arriving=phase==='arrival';
+  var progress=arriving ? Math.min(1,(now-arrivalStarted)/ARRIVAL_MS) : 1;
+  var remaining=1-progress;
+  var sweep=remaining*remaining*(3-2*remaining);
+  var orbit=1.35*sweep;
+  var reach=0.52+0.63*sweep;
+  viewDirection.set(Math.sin(orbit)*reach,1,Math.cos(orbit)*reach).normalize();
+  viewRight.set(Math.cos(orbit),0,-Math.sin(orbit));
+  viewUp.crossVectors(viewDirection,viewRight);
+  var playing=arriving||phase==='play'||phase==='locked'||phase==='feedback';
+  var lowerEnd=playing ? THREE.MathUtils.lerp(playStart,-0.65,sweep) : -0.65;
+  cameraTarget.set(LANES*LANE_W/2-0.8*sweep,0.7,(lowerEnd+LEN+0.65)/2)
+    .applyMatrix4(trayGroup.matrixWorld);
   var tanVertical=Math.tan(THREE.MathUtils.degToRad(camera.fov/2));
   var tanHorizontal=tanVertical*camera.aspect;
   var distance=0;
@@ -453,14 +480,15 @@ function updateCamera(){
     cameraOffset.z=Math.max(lowerEnd,corner.z);
     cameraOffset.applyMatrix4(trayGroup.matrixWorld).sub(cameraTarget);
     var depth=cameraOffset.dot(viewDirection);
-    distance=Math.max(distance,depth+1.08*Math.max(Math.abs(cameraOffset.x)/tanHorizontal,Math.abs(cameraOffset.dot(viewUp))/tanVertical));
+    distance=Math.max(distance,depth+1.04*Math.max(Math.abs(cameraOffset.dot(viewRight))/tanHorizontal,Math.abs(cameraOffset.dot(viewUp))/tanVertical));
   });
-  camera.position.copy(cameraTarget).addScaledVector(viewDirection,distance);
+  camera.position.copy(cameraTarget).addScaledVector(viewDirection,distance*(1+0.18*sweep));
   camera.lookAt(cameraTarget);
+  if(arriving&&progress===1) startCard();
 }
 
 /* ---------- State ---------- */
-var coach=true, phase='idle', game=0, card=0, actions=[], hintUsed=false, score=0, history=[], gameId=0, runs=0;
+var coach=true, phase='idle', game=0, card=0, actions=[], score=0, history=[], gameId=0, runs=0;
 function need(){ return GAMES[game].cards[card].m.reduce(function(s,x){ return s+Math.abs(x.d); },0); }
 
 function newRun(isCoach){
@@ -474,26 +502,37 @@ function startGame(){
   setBalances(game>0?keyFor(game-1):[0,0,0,0,0,0,0]);
   history=[]; card=0; tiltT=TILT_PLAY;
   drawKey(false); glows.forEach(function(g){ g.material.opacity=0; });
-  $('supply').hidden=false;
-  $('results').hidden=true; $('cardBox').hidden=false;
+  $('resultsDialog').close(); $('viewResults').hidden=true; $('cardBox').hidden=true; $('fbBox').hidden=true;
   $('gameStat').textContent='Game '+(game+1)+' of '+GAMES.length;
-  startCard();
+  if(reduceMotion.matches) startCard();
+  else { phase='arrival'; arrivalStarted=performance.now(); }
+  resize();
 }
 function startCard(){
-  var c=GAMES[game].cards[card]; actions=[]; hintUsed=false; phase='play';
+  var c=GAMES[game].cards[card]; actions=[]; phase='play';
   $('cardMeta').textContent=GAMES[game].title+', card '+(card+1)+' of 3';
   var n=need(); $('amtTxt').textContent=n+' marble move'+(n>1?'s':'');
-  $('cardText').textContent=c.t; $('hintTxt').textContent=''; $('hintBtn').disabled=false;
+  $('cardText').textContent=c.t; $('moveStatus').textContent='';
   $('fbBox').hidden=true; renderPips(); updateStats();
+  var turnCard=$('cardBox');
+  turnCard.hidden=false;
+  if(!reduceMotion.matches) turnCard.animate(
+    [{opacity:0,transform:'translateY(-18px) scale(.97)'},{opacity:1,transform:'none'}],
+    {duration:330,easing:'cubic-bezier(.2,.75,.25,1)'}
+  );
 }
 function updateStats(){ $('scoreStat').textContent='Score '+(coach?score:'?'); }
 function renderPips(){
   var n=need(), h='';
-  for(var i=0;i<n;i++){ var a=actions[i]; h+='<span class="p'+(a?(a.d>0?' add':' take'):'')+'"></span>'; }
+  for(var i=0;i<n;i++){
+    var action=actions[i];
+    var pipClass=action ? 'pip-used '+(action.d>0?'add':'take') : 'pip-ball';
+    h+='<span class="'+pipClass+'" aria-hidden="true"></span>';
+  }
   $('pips').innerHTML=h+'<span>'+actions.length+' of '+n+' moves</span>';
 }
-var hintT;
-function flash(msg){ $('hintTxt').textContent=msg; clearTimeout(hintT); hintT=setTimeout(function(){ if(phase==='play') $('hintTxt').textContent=''; },1800); }
+var moveStatusTimer;
+function flash(msg){ $('moveStatus').textContent=msg; clearTimeout(moveStatusTimer); moveStatusTimer=setTimeout(function(){ if(phase==='play') $('moveStatus').textContent=''; },1800); }
 
 function act(lane,delta,selected,dropZ){
   if(phase!=='play') return;
@@ -530,19 +569,18 @@ function evaluate(){
       why='Lane'+(wrong.length>1?'s ':' ')+wrong.map(function(i){return (i+1)+' ('+ACCTS[i].name+')';}).join(' and ')+' ended up wrong.';
     }
   }
-  var pts=ok?(hintUsed?5:10):0;
+  var pts=ok?10:0;
   history.push({card:c,ok:ok,pts:pts,why:why});
-  if(coach) score+=pts;
-  var html;
-  if(coach){
-    html='<span class="tag '+(ok?'ok':'no')+'">'+(ok?'Right, +'+pts:'Not quite')+'</span>';
-    if(!ok) html+='<br>'+why;
-    html+='<ul>'+c.m.map(function(x){ return '<li>'+moveText(x)+'</li>'; }).join('')+'</ul>';
-    if(!ok) html+='<p style="margin:8px 0 0;color:var(--muted);font-size:13px">Leave the marbles where they are. Real books get fixed with a new entry, not an eraser. The key card will show what’s off.</p>';
-  } else html='<span class="tag ok">Posted</span><br>The key card will tell you after the tilt.';
+  phase='feedback';
+  if(!coach){ next(); return; }
+  score+=pts;
+  var html='<span class="tag '+(ok?'ok':'no')+'">'+(ok?'Right, +'+pts:'Not quite')+'</span>';
+  if(!ok) html+='<br>'+why;
+  html+='<ul>'+c.m.map(function(x){ return '<li>'+moveText(x)+'</li>'; }).join('')+'</ul>';
+  if(!ok) html+='<p style="margin:8px 0 0;color:var(--muted);font-size:13px">Leave the marbles where they are. Real books get fixed with a new entry, not an eraser. The key card will show what’s off.</p>';
   $('fbText').innerHTML=html;
   $('nextBtn').textContent=card>=2?'Tilt the tray':'Next card';
-  $('fbBox').hidden=false; phase='feedback'; updateStats();
+  $('fbBox').hidden=false; updateStats();
 }
 function next(){
   if(phase!=='feedback') return;
@@ -551,14 +589,14 @@ function next(){
 }
 
 /* ---------- Audit ---------- */
+var auditStillTime=0;
 function audit(){
-  phase='audit'; var gid=gameId;
-  $('supply').hidden=true;
+  phase='audit'; auditStillTime=0; var gid=gameId;
   $('cardBox').hidden=true; $('fbBox').hidden=true;
+  resize();
   marbles.forEach(function(m){ m.body.wakeUp(); });
   tiltT=TILT_AUDIT;
   setTimeout(function(){ if(gid===gameId) drawKey(true,keyFor(game)); },1600);
-  setTimeout(function(){ if(gid===gameId) showResults(); },4200);
 }
 function showResults(){
   var key=keyFor(game), c=counts();
@@ -569,7 +607,7 @@ function showResults(){
   var right=history.filter(function(h){return h.ok;}).length;
   var pts=history.reduce(function(s,h){return s+h.pts;},0)+(allOk?20:0);
   score+=coach?(allOk?20:0):pts;
-  var html='<h3>'+(allOk?'Books balanced. Clean audit.':'Audit: something’s off')+'</h3>';
+  var html='<h3 id="resultsTitle">'+(allOk?'Books balanced. Clean audit.':'Audit: something’s off')+'</h3>';
   html+='<div class="lanes">'+c.map(function(n,i){ var ok=n===key[i]; return '<div class="lane '+(ok?'ok':'no')+'" style="border-top:3px solid '+GCSS[ACCTS[i].group]+'"><b>'+n+'</b><small>key '+key[i]+'</small>'+(i+1)+'</div>'; }).join('')+'</div>';
   html+='<div class="eq '+(eqOk?'ok':'no')+'">Lanes 1 to 4 = '+L+', lanes 5 to 7 = '+Rr+'. '+(eqOk?'The two sides match.':'The sides don’t match: a marble went to the wrong side.')+'</div>';
   if(eqOk&&!allOk) html+='<div class="eq no" style="margin-top:6px">The sides match but lanes don’t. Right side of the tray, wrong lane. The totals check alone would have missed this.</div>';
@@ -578,7 +616,7 @@ function showResults(){
   var last=game>=GAMES.length-1;
   html+='<div class="row">'+(last?'<button class="btn" id="againBtn">Play from the start</button>':'<button class="btn" id="nextGameBtn">Next game: carry the books forward</button><button class="btn alt" id="redoBtn">Redo this game</button>')+'</div>';
   if(!last) html+='<p style="margin:8px 0 0;color:var(--muted);font-size:13px">Carrying forward sets the lanes to the key card, the way an accountant fixes the books before moving on.</p>';
-  $('results').innerHTML=html; $('results').hidden=false;
+  $('results').innerHTML=html; $('viewResults').hidden=false;
   if(last) $('againBtn').addEventListener('click',function(){ newRun(coach); });
   else { $('nextGameBtn').addEventListener('click',function(){ game++; startGame(); }); $('redoBtn').addEventListener('click',startGame); }
   updateStats(); phase='done';
@@ -606,17 +644,22 @@ var dragGhost=document.createElement('div'); dragGhost.id='dragMarble'; dragGhos
 function beginDrag(e,marble){
   if(phase!=='play'||e.button!==0||drag) return;
   ensureAudio(); e.preventDefault();
-  drag={pointerId:e.pointerId,marble:marble};
+  drag={pointerId:e.pointerId,marble:marble,source:marble ? null : e.target};
+  if(drag.source) drag.source.classList.add('dragging');
   if(marble) marble.mesh.visible=false;
   e.currentTarget.setPointerCapture(e.pointerId);
+  dragGhost.style.setProperty('--marble-color',marble ? GCSS[ACCTS[marble.lane].group] : '');
   dragGhost.hidden=false; dragGhost.style.left=e.clientX+'px'; dragGhost.style.top=e.clientY+'px';
 }
 function cancelDrag(){
   if(!drag) return;
   if(drag.marble) drag.marble.mesh.visible=true;
-  drag=null; dragGhost.hidden=true; $('supply').classList.remove('over');
+  if(drag.source) drag.source.classList.remove('dragging');
+  drag=null; dragGhost.hidden=true; $('pips').classList.remove('over');
 }
-$('supply').addEventListener('pointerdown',function(e){ beginDrag(e,null); });
+$('pips').addEventListener('pointerdown',function(e){
+  if(e.target.classList.contains('pip-ball')) beginDrag(e,null);
+});
 canvas.addEventListener('pointerdown',function(e){
   pickLane(e);
   var hits=raycaster.intersectObjects(marbles.map(function(m){ return m.mesh; }));
@@ -624,25 +667,30 @@ canvas.addEventListener('pointerdown',function(e){
   var marble=marbles.find(function(m){ return m.mesh===hits[0].object; });
   beginDrag(e,marble);
 });
-function overSupply(e){
-  var r=$('supply').getBoundingClientRect();
+function overDispenser(e){
+  var r=$('pips').getBoundingClientRect();
   return e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;
 }
 window.addEventListener('pointermove',function(e){
   if(!drag||drag.pointerId!==e.pointerId) return;
   dragGhost.style.left=e.clientX+'px'; dragGhost.style.top=e.clientY+'px';
-  hoverLane=pickLane(e); $('supply').classList.toggle('over',overSupply(e));
+  var returning=overDispenser(e);
+  var overPanel=$('panel').contains(document.elementFromPoint(e.clientX,e.clientY));
+  hoverLane=overPanel ? -1 : pickLane(e);
+  var previewLane=hoverLane>=0 ? hoverLane : drag.marble?.lane;
+  dragGhost.style.setProperty('--marble-color',previewLane===undefined ? '' : GCSS[ACCTS[previewLane].group]);
+  $('pips').classList.toggle('over',returning);
 });
 window.addEventListener('pointerup',function(e){
   if(!drag||drag.pointerId!==e.pointerId) return;
-  var marble=drag.marble, lane=pickLane(e), returning=overSupply(e);
+  var marble=drag.marble, lane=pickLane(e), returning=overDispenser(e);
   cancelDrag();
   if(phase!=='play') return;
   if(returning){ if(marble) act(marble.lane,-1,marble); return; }
   if(lane<0||$('panel').contains(document.elementFromPoint(e.clientX,e.clientY))) return;
   var point=raycaster.intersectObject(floorMesh)[0].point;
   var local=trayGroup.worldToLocal(point.clone());
-  var dropZ=Math.max(playStart,Math.min(LEN-R,local.z));
+  var dropZ=Math.max(playStart,Math.min(STOP_Z-R,local.z));
   if(!marble){ act(lane,1,null,dropZ); return; }
   if(marble.lane!==lane){
     if(counts()[lane]>=CAP){ flash('Lane '+(lane+1)+' is full.'); return; }
@@ -657,8 +705,11 @@ window.addEventListener('pointerup',function(e){
 });
 window.addEventListener('pointercancel',cancelDrag);
 window.addEventListener('blur',cancelDrag);
-$('hintBtn').addEventListener('click',function(){ if(phase!=='play') return; hintUsed=true; $('hintTxt').textContent=GAMES[game].cards[card].tip; });
 $('nextBtn').addEventListener('click',next);
+$('viewResults').addEventListener('click',function(){
+  $('resultsDialog').showModal();
+  $('resultsDialog').scrollTop=0;
+});
 $('startCoach').addEventListener('click',function(){ newRun(true); });
 $('startExam').addEventListener('click',function(){ newRun(false); });
 function setModeUI(){ $('modeCoach').setAttribute('aria-pressed',String(coach)); $('modeExam').setAttribute('aria-pressed',String(!coach)); updateStats(); }
@@ -683,15 +734,22 @@ function tick(now){
   // smooth tilt; gravity expressed in tray-local coordinates so the tray's bodies can stay static
   tilt+=(tiltT-tilt)*(1-Math.exp(-dt*2.2));
   trayGroup.rotation.x=tilt;
-  world.gravity.set(0,-30*Math.cos(tilt),30*Math.sin(tilt));
+  world.gravity.set(0,-GRAVITY*Math.cos(tilt),GRAVITY*Math.sin(tilt));
   if(Math.abs(tiltT-tilt)>0.002) marbles.forEach(function(m){ m.body.wakeUp(); });
   world.step(1/60,dt,4);
   marbles.forEach(function(m){ m.mesh.position.copy(m.body.position); m.mesh.quaternion.copy(m.body.quaternion); });
   stepLifts(now);
+  if(phase==='audit'){
+    var settled=Math.abs(tiltT-tilt)<0.002 && marbles.every(function(m){
+      return m.body.velocity.lengthSquared()<0.12;
+    });
+    auditStillTime=settled ? auditStillTime+dt : 0;
+    if(auditStillTime>=0.35) showResults();
+  }
   var show=(phase==='play'&&hoverLane>=0);
   hover.visible=show; if(show) hover.position.set(hoverLane*LANE_W+LANE_W/2,0.02,LEN/2);
   if(phase==='done') glows.forEach(function(g){ if(g.material.color.getHex()===0xf97316) g.material.opacity=0.3+0.15*Math.sin(now/250); });
-  updateCamera(dt);
+  updateCamera(now);
   renderer.render(scene,camera);
   requestAnimationFrame(tick);
 }

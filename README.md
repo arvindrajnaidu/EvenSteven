@@ -1,6 +1,6 @@
 # Even Steven
 
-The Ledger Tilt game from `game.html`, packaged as an offline iOS app with Capacitor 8, following the iOS setup in `../lbw`.
+The Even Steven game from `game.html`, packaged as an offline iOS app with Capacitor 8, following the iOS setup in `../lbw`.
 
 ## Run locally
 
@@ -17,7 +17,7 @@ Open http://localhost:3012. The development server builds the game when it start
 npm run ios
 ```
 
-This builds the web assets, syncs the included iOS project, and opens Xcode. Select your signing team and an iPhone or simulator, then Run. The app uses bundle identifier `com.buzzie.evensteven` and display name `Even Steven`. The in-game title remains Ledger Tilt.
+This builds the web assets, syncs the included iOS project, and opens Xcode. Select your signing team and an iPhone or simulator, then Run. The app uses bundle identifier `com.buzzie.evensteven` and display name `Even Steven`.
 
 Use `npm run cap:sync` to rebuild and sync after changing the game. You can also open `ios/App/App.xcodeproj` directly after syncing.
 
