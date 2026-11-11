@@ -1,0 +1,7 @@
+node_modules/
+out/
+.DS_Store
+ios/App/App/public/
+ios/App/App/capacitor.config.json
+ios/App/App.xcodeproj/xcuserdata/
+ios/DerivedData/

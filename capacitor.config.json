@@ -1,0 +1,7 @@
+{
+  "appId": "com.buzzie.evensteven",
+  "appName": "Even Steven",
+  "webDir": "out",
+  "backgroundColor": "#eef0ee",
+  "ios": { "contentInset": "never", "allowsLinkPreview": false }
+}
