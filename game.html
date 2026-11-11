@@ -85,11 +85,12 @@ main{flex:1;min-height:0;position:relative}
 .card .amt{margin-top:8px;color:var(--muted);font-weight:700;font-size:13px}
 #pips{display:flex;align-items:center;gap:8px;width:fit-content;margin-top:8px;padding:4px 6px;border:1px solid transparent;border-radius:10px;font-weight:700;font-size:13px;touch-action:none}
 #pips.over{border-color:#9ee9c9;background:#2b5646}
-.pip-ball,#dragMarble{width:30px;height:30px;flex:none;border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff,var(--marble-color,#a1a8ad) 42%,#252a31);box-shadow:0 3px 5px #0004}
+.pip-ball,#dragMarble,.pip-used{width:clamp(34px,11vw,42px);height:clamp(34px,11vw,42px);flex:none;border-radius:50%}
+.pip-ball,#dragMarble{background:radial-gradient(circle at 32% 28%,#fff,var(--marble-color,#a1a8ad) 42%,#252a31);box-shadow:0 3px 5px #0004}
 .pip-ball{cursor:grab}
 .pip-ball.dragging{visibility:hidden}
 #dragMarble{position:fixed;z-index:20;pointer-events:none;transform:translate(-50%,-50%)}
-.pip-used{width:30px;height:30px;flex:none;border-radius:50%;background:#101e1a;border:2px solid #739587}
+.pip-used{background:#101e1a;border:2px solid #739587}
 .pip-used.add{border-color:var(--accent)}
 .pip-used.take{border-color:var(--accent-2)}
 #moveStatus{color:var(--warn);font-weight:700;font-size:13px;margin-top:8px}
@@ -381,8 +382,10 @@ function spawnMarble(lane,dropZ){
   world.addBody(body);
   var mesh=new THREE.Mesh(marbleGeo,marbleMats[ACCTS[lane].group]); mesh.castShadow=true; mesh.receiveShadow=true;
   trayGroup.add(mesh);
-  marbles.push({lane:lane,body:body,mesh:mesh});
+  var marble={lane:lane,body:body,mesh:mesh};
+  marbles.push(marble);
   marbles.forEach(function(m){ m.body.wakeUp(); });
+  return marble;
 }
 function removeMarble(lane,selected){
   var inLane=marbles.filter(function(m){ return m.lane===lane; });
@@ -468,7 +471,7 @@ function updateCamera(now){
   viewDirection.set(Math.sin(orbit)*reach,1,Math.cos(orbit)*reach).normalize();
   viewRight.set(Math.cos(orbit),0,-Math.sin(orbit));
   viewUp.crossVectors(viewDirection,viewRight);
-  var playing=arriving||phase==='play'||phase==='locked'||phase==='feedback';
+  var playing=arriving||phase==='play'||phase==='locked'||phase==='feedback'||phase==='awaitingTilt';
   var lowerEnd=playing ? THREE.MathUtils.lerp(playStart,-0.65,sweep) : -0.65;
   cameraTarget.set(LANES*LANE_W/2-0.8*sweep,0.7,(lowerEnd+LEN+0.65)/2)
     .applyMatrix4(trayGroup.matrixWorld);
@@ -537,15 +540,16 @@ function flash(msg){ $('moveStatus').textContent=msg; clearTimeout(moveStatusTim
 function act(lane,delta,selected,dropZ){
   if(phase!=='play') return;
   if(actions.length>=need()) return;
-  var c=counts();
+  var c=counts(), addedMarble;
   if(delta>0){
     if(c[lane]>=CAP){ flash('Lane '+(lane+1)+' is full.'); return; }
-    spawnMarble(lane,dropZ); actions.push({l:lane,d:1});
+    addedMarble=spawnMarble(lane,dropZ); actions.push({l:lane,d:1});
   } else {
     if(c[lane]===0){ flash('Lane '+(lane+1)+' is empty. Nothing to take.'); return; }
     removeMarble(lane,selected); actions.push({l:lane,d:-1});
   }
   finishMove();
+  return addedMarble;
 }
 function finishMove(){
   renderPips();
@@ -584,15 +588,18 @@ function evaluate(){
 }
 function next(){
   if(phase!=='feedback') return;
-  if(card>=2){ audit(); return; }
+  if(card>=2){
+    phase='awaitingTilt'; settledTime=0;
+    $('cardBox').hidden=true; $('fbBox').hidden=true;
+    return;
+  }
   card++; startCard();
 }
 
 /* ---------- Audit ---------- */
-var auditStillTime=0;
+var settledTime=0;
 function audit(){
-  phase='audit'; auditStillTime=0; var gid=gameId;
-  $('cardBox').hidden=true; $('fbBox').hidden=true;
+  phase='audit'; settledTime=0; var gid=gameId;
   resize();
   marbles.forEach(function(m){ m.body.wakeUp(); });
   tiltT=TILT_AUDIT;
@@ -691,17 +698,26 @@ window.addEventListener('pointerup',function(e){
   var point=raycaster.intersectObject(floorMesh)[0].point;
   var local=trayGroup.worldToLocal(point.clone());
   var dropZ=Math.max(playStart,Math.min(STOP_Z-R,local.z));
-  if(!marble){ act(lane,1,null,dropZ); return; }
-  if(marble.lane!==lane){
+  if(!marble) marble=act(lane,1,null,dropZ);
+  else if(marble.lane!==lane){
     if(counts()[lane]>=CAP){ flash('Lane '+(lane+1)+' is full.'); return; }
     if(need()-actions.length<2){ flash('Moving between lanes needs two remaining moves.'); return; }
     actions.push({l:marble.lane,d:-1},{l:lane,d:1});
     marble.lane=lane; marble.mesh.material=marbleMats[ACCTS[lane].group];
     finishMove();
   }
-  marble.body.position.set(lane*LANE_W+LANE_W/2,3.2,dropZ);
+  if(!marble) return;
+  var dropHeight=1.4;
+  marble.body.position.set(lane*LANE_W+LANE_W/2,dropHeight,dropZ);
   marble.body.velocity.set(0,0,0); marble.body.angularVelocity.set(0,0,0);
   marbles.forEach(function(m){ m.body.wakeUp(); });
+
+  // The visible marble starts on the release ray, then meets its lane-constrained body.
+  var rayOrigin=trayGroup.worldToLocal(raycaster.ray.origin.clone());
+  var release=rayOrigin.lerp(local,(rayOrigin.y-dropHeight)/rayOrigin.y);
+  marble.mesh.position.copy(release);
+  marble.dropOffset=release.sub(marble.body.position);
+  marble.dropStarted=performance.now();
 });
 window.addEventListener('pointercancel',cancelDrag);
 window.addEventListener('blur',cancelDrag);
@@ -737,14 +753,24 @@ function tick(now){
   world.gravity.set(0,-GRAVITY*Math.cos(tilt),GRAVITY*Math.sin(tilt));
   if(Math.abs(tiltT-tilt)>0.002) marbles.forEach(function(m){ m.body.wakeUp(); });
   world.step(1/60,dt,4);
-  marbles.forEach(function(m){ m.mesh.position.copy(m.body.position); m.mesh.quaternion.copy(m.body.quaternion); });
+  marbles.forEach(function(m){
+    m.mesh.position.copy(m.body.position); m.mesh.quaternion.copy(m.body.quaternion);
+    if(m.dropOffset){
+      var remaining=Math.max(0,1-(now-m.dropStarted)/220);
+      m.mesh.position.addScaledVector(m.dropOffset,remaining*remaining);
+      if(remaining===0) m.dropOffset=null;
+    }
+  });
   stepLifts(now);
-  if(phase==='audit'){
-    var settled=Math.abs(tiltT-tilt)<0.002 && marbles.every(function(m){
+  if(phase==='awaitingTilt'||phase==='audit'){
+    var settled=lifts.length===0 && Math.abs(tiltT-tilt)<0.002 && marbles.every(function(m){
       return m.body.velocity.lengthSquared()<0.12;
     });
-    auditStillTime=settled ? auditStillTime+dt : 0;
-    if(auditStillTime>=0.35) showResults();
+    settledTime=settled ? settledTime+dt : 0;
+    if(settledTime>=0.35){
+      if(phase==='awaitingTilt') audit();
+      else showResults();
+    }
   }
   var show=(phase==='play'&&hoverLane>=0);
   hover.visible=show; if(show) hover.position.set(hoverLane*LANE_W+LANE_W/2,0.02,LEN/2);
