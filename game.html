@@ -142,9 +142,9 @@ main{flex:1;min-height:0;position:relative}
       <div id="intro">
         <div class="sheet">
           <h2>Even Steven</h2>
-          <p>Seven lanes, one marble per $10. Each lane is an account. Run your little business for three cards, then tilt the tray and let the marbles roll to the key card.</p>
+          <p>You own a small business and keep its books. Each lane is a business account, and each marble represents $10. After three cards, tilt the tray to check your entries.</p>
           <ol>
-            <li>Read the card. Decide which two accounts change.</li>
+            <li>Read the card. Decide which business accounts change.</li>
             <li>Drag a gray marble into a lane. Pick up a marble to move it to another lane, or return it to the row of marbles. A transfer counts as two moves.</li>
             <li>After three cards, tilt. The marbles line up against the wall, and the key card shows the number each lane should reach.</li>
           </ol>
@@ -202,29 +202,29 @@ var GCSS={ have:'#1c9a8b', owe:'#7b5fd6', earn:'#e08a1e' };
 // Each game: 3 cards, each a list of lane moves. Lane index 0..6, d = marbles added (+) or taken (-).
 var GAMES=[
   { title:'Opening day', cards:[
-    { t:'You start your business by putting in $20 of your own savings.', m:[{l:0,d:2},{l:5,d:2}] },
-    { t:'You sell a hoodie design for $10 cash.', m:[{l:0,d:1},{l:6,d:1}] },
-    { t:'You buy a gaming mic for $10 cash.', m:[{l:1,d:1},{l:0,d:-1}] }
+    { t:'You put $20 of your personal savings into the business.', m:[{l:0,d:2},{l:5,d:2}] },
+    { t:'The business sells a hoodie design for $10 cash.', m:[{l:0,d:1},{l:6,d:1}] },
+    { t:'The business buys a gaming mic for $10 cash.', m:[{l:1,d:1},{l:0,d:-1}] }
   ]},
   { title:'Borrowing and promises', cards:[
-    { t:'You borrow $20 from your cousin.', m:[{l:0,d:2},{l:4,d:2}] },
-    { t:'You finish a $10 logo for a friend. They’ll pay you next week.', m:[{l:2,d:1},{l:6,d:1}] },
-    { t:'You pay $10 for ads on social media.', m:[{l:3,d:1},{l:0,d:-1}] }
+    { t:'The business borrows $20 from your cousin.', m:[{l:0,d:2},{l:4,d:2}] },
+    { t:'The business designs a $10 logo for a friend. They’ll pay the business next week.', m:[{l:2,d:1},{l:6,d:1}] },
+    { t:'The business pays $10 for social media ads.', m:[{l:3,d:1},{l:0,d:-1}] }
   ]},
   { title:'Settling up', cards:[
-    { t:'Your friend pays the $10 they owed you.', m:[{l:0,d:1},{l:2,d:-1}] },
-    { t:'You pay back $10 of your cousin’s loan.', m:[{l:4,d:-1},{l:0,d:-1}] },
-    { t:'Your uncle buys you $10 of art supplies. You’ll pay him back later.', m:[{l:1,d:1},{l:4,d:1}] }
+    { t:'Your friend pays the $10 they owed the business.', m:[{l:0,d:1},{l:2,d:-1}] },
+    { t:'The business repays $10 of the loan from your cousin.', m:[{l:4,d:-1},{l:0,d:-1}] },
+    { t:'Your uncle buys $10 of art supplies for the business. The business will pay him back later.', m:[{l:1,d:1},{l:4,d:1}] }
   ]},
   { title:'A good week', cards:[
-    { t:'You sell a $20 custom order for cash.', m:[{l:0,d:2},{l:6,d:2}] },
-    { t:'You take $10 out of the business for pizza.', m:[{l:5,d:-1},{l:0,d:-1}] },
-    { t:'You pay $10 for web hosting.', m:[{l:3,d:1},{l:0,d:-1}] }
+    { t:'The business sells a custom order for $20 cash.', m:[{l:0,d:2},{l:6,d:2}] },
+    { t:'You take $10 out of the business to buy yourself pizza.', m:[{l:5,d:-1},{l:0,d:-1}] },
+    { t:'The business pays $10 for web hosting.', m:[{l:3,d:1},{l:0,d:-1}] }
   ]},
   { title:'Three-lane cards', cards:[
-    { t:'You sell a $20 sticker pack. A classmate pays $10 now and $10 next week.', m:[{l:0,d:1},{l:2,d:1},{l:6,d:2}] },
-    { t:'You buy $20 of supplies: $10 cash, the rest on credit.', m:[{l:1,d:2},{l:0,d:-1},{l:4,d:1}] },
-    { t:'You return the gaming mic for a $10 refund.', m:[{l:0,d:1},{l:1,d:-1}] }
+    { t:'The business sells a $20 sticker pack to a classmate, who pays $10 now and owes the business $10 next week.', m:[{l:0,d:1},{l:2,d:1},{l:6,d:2}] },
+    { t:'The business buys $20 of supplies, paying $10 cash and owing the seller $10.', m:[{l:1,d:2},{l:0,d:-1},{l:4,d:1}] },
+    { t:'The business returns the gaming mic and gets a $10 cash refund.', m:[{l:0,d:1},{l:1,d:-1}] }
   ]}
 ];
 function applyMoves(bal,moves){ moves.forEach(function(x){ bal[x.l]+=x.d; }); return bal; }
